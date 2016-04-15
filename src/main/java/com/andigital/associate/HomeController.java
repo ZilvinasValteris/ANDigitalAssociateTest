@@ -6,13 +6,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @Controller
 public class HomeController {
 
 	private static Logger log = Logger.getLogger(HomeController.class);
-	
+
 	@RequestMapping(value = "/", method = GET)
     public String displayHome()
 	{
@@ -22,7 +24,6 @@ public class HomeController {
 	@RequestMapping(value = "/getVenues", method = GET)
 	public String displayVenues(HttpServletRequest request)
 	{
-		
 		WebClient webClient = new WebClient();
 		
 		String location = request.getParameter("location");
@@ -30,7 +31,9 @@ public class HomeController {
 		System.out.println("location attribute: " + location);
 		log.info("Location used: " + location);
 		
-		webClient.getVenues(location);
+		List<String> trendingVenues = webClient.getVenues(location);
+
+		request.setAttribute("trendingVenues", trendingVenues);
 
 		return "venues";
 	}

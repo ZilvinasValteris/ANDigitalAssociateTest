@@ -11,11 +11,13 @@ import static org.mockito.Mockito.mock;
 public class HomeControllerTest {
 
     private HomeController homeController;
+    private HttpServletRequest servletRequest;
 
     @Before
     public void setup()
     {
         homeController = new HomeController();
+        servletRequest = mock(HttpServletRequest.class);
     }
 
     @Test
@@ -29,8 +31,6 @@ public class HomeControllerTest {
     @Test
     public void venuesPageReturned()
     {
-        HttpServletRequest servletRequest = mock(HttpServletRequest.class);
-
         String pageReturned = homeController.displayVenues(servletRequest);
 
         assertEquals("venues", pageReturned);

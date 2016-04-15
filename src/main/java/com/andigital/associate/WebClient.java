@@ -1,14 +1,14 @@
 package com.andigital.associate;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WebClient {
 
@@ -20,16 +20,14 @@ public class WebClient {
 	public List<String> getVenues(String location)
 	{
 		Client client = Client.create();
-		// would give all venues I guess "https://api.foursquare.com/v2/venues/search?near=%s&client_id=%s&client_secret=%s&v=%s"
 		String urlToHit = String.format("https://api.foursquare.com/v2/venues/trending?near=%s&client_id=%s&client_secret=%s&v=%s", location, CLIENT_ID, CLIENT_SECRET, FOURSUARE_VERSION);
 		log.info("Making a request to: " + urlToHit);
 		// try catch to handle crashes when talking to API  (local firewall, foursquare down, wrong request format...)
 		WebResource webResource = client.resource(urlToHit);
 		ClientResponse clientResponse = webResource.accept("application/json").get(ClientResponse.class); 
-		
-		
+
 		String clientResponseBody = clientResponse.getEntity(String.class);
-		log.info(clientResponseBody);
+		log.info("Client JSON response: " + clientResponseBody);
 		
 		int responseCode = clientResponse.getStatusInfo().getStatusCode();
 			
@@ -40,22 +38,24 @@ public class WebClient {
 			// Handle problems
 		}
 		
-		// should probably have a separate method for json parsing
-		
-		// How do I end up having a list of json objects and iterating through them to extract relevant values?
-		JSONParser jsonParser = new JSONParser();
-		try {
-			jsonParser.parse(clientResponseBody);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		// What exactly do I want to return?
-		// Venue names for the start and more details later?
-		return null;
-	}
-	
+		JSONObject jsonObject = new JSONObject(clientResponseBody);
+		JSONObject responseBodyJson = jsonObject.getJSONObject("response");
+		JSONArray venuesData = responseBodyJson.getJSONArray("venues");
+		int numberOfVenues = venuesData.length();
+		List<String> venueNames = new ArrayList<>();
 
+		if(venuesData != null && numberOfVenues != 0)
+		{
+			for (int i = 0; i < numberOfVenues; i++)
+			{
+				venueNames.add(venuesData.getJSONObject(i).getString("name"));
+			}
+		}
+		else
+		{
+			log.info("Empty client response - no venues found at location: " + location);
+		}
+
+		return venueNames;
+	}
 }
